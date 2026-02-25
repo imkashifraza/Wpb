@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raza-Bot Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --primary: #00ff88;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+        }
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #00ff88, #00bdff);
+            border: none;
+            padding: 10px 25px;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .status-online { background: #00ff8822; color: #00ff88; border: 1px solid #00ff88; }
+        .status-offline { background: #ff444422; color: #ff4444; border: 1px solid #ff4444; }
+        #qr-container img {
+            border-radius: 10px;
+            background: white;
+            padding: 10px;
+        }
+        .pairing-code {
+            font-size: 2rem;
+            letter-spacing: 5px;
+            color: var(--primary);
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translate(0, 0px); }
+            50% { transform: translate(0, 15px); }
+            100% { transform: translate(0, -0px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <header class="text-center mb-5 animate__animated animate__fadeInDown">
+            <h1 class="display-4 fw-bold mb-0">Raza-Bot <span style="color: var(--primary)">Panel</span></h1>
+            <p class="text-muted">Advanced WhatsApp Bot Management</p>
+        </header>
+
+        <div class="row g-4">
+            <!-- Bot Status Card -->
+            <div class="col-md-4">
+                <div class="glass-card h-100 animate__animated animate__fadeInLeft">
+                    <h3 class="mb-4"><i class="fas fa-robot me-2"></i> Bot Status</h3>
+                    <div id="status-container">
+                        <div class="d-flex align-items-center mb-3">
+                            <span id="status-indicator" class="status-badge status-offline">OFFLINE</span>
+                        </div>
+                        <p id="bot-number" class="text-muted small">No device linked</p>
+                        <hr class="border-secondary">
+                        <p class="mb-0 small text-muted">Uptime: <span id="uptime-display" class="text-white">00:00:00</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection Card -->
+            <div class="col-md-8">
+                <div class="glass-card animate__animated animate__fadeInRight">
+                    <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active text-white" data-bs-toggle="pill" data-bs-target="#qr-tab">QR Code</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link text-white" data-bs-toggle="pill" data-bs-target="#pairing-tab">Pairing Code</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active text-center" id="qr-tab">
+                            <div id="qr-container" class="mb-3">
+                                <div class="p-5 text-muted border border-secondary border-dashed rounded">
+                                    <i class="fas fa-qrcode fa-4x mb-3"></i>
+                                    <p>Waiting for QR code generation...</p>
+                                </div>
+                            </div>
+                            <p class="small text-muted">Scan this QR code with your WhatsApp Link Device</p>
+                        </div>
+                        
+                        <div class="tab-pane fade text-center" id="pairing-tab">
+                            <div class="mb-4">
+                                <input type="text" id="phone-input" class="form-control form-control-lg bg-dark text-white border-secondary mb-3" placeholder="92300xxxxxxx">
+                                <button id="btn-pair" class="btn btn-primary w-100">Get Pairing Code</button>
+                            </div>
+                            <div id="pairing-code-display" class="d-none animate__animated animate__zoomIn">
+                                <p class="text-muted mb-2">Your Pairing Code:</p>
+                                <div class="pairing-code mb-3" id="pairing-code-text" style="cursor: pointer;" onclick="copyToClipboard(this.innerText)">XXXX-XXXX</div>
+                                <p class="small text-success mb-3" id="copy-status"></p>
+                                <div class="alert alert-info py-2 small">
+                                    Go to WhatsApp > Linked Devices > Link a Device > Link with phone number instead
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Card -->
+            <div class="col-12">
+                <div class="glass-card animate__animated animate__fadeInUp">
+                    <h3 class="mb-4"><i class="fas fa-bolt me-2"></i> Quick Management</h3>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-info w-100 py-3" onclick="restartBot()">
+                                <i class="fas fa-sync mb-2 d-block"></i> Restart Bot
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-danger w-100 py-3" onclick="clearSession()">
+                                <i class="fas fa-trash mb-2 d-block"></i> Clear Session
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-warning w-100 py-3" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                                <i class="fas fa-cog mb-2 d-block"></i> Bot Settings
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-success w-100 py-3" onclick="window.open('/logs', '_blank')">
+                                <i class="fas fa-terminal mb-2 d-block"></i> View Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Bot Settings</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Bot Name</label>
+                        <input type="text" id="setting-botname" class="form-control bg-dark text-white border-secondary" placeholder="Raza-Bot">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Owner Number</label>
+                        <input type="text" id="setting-owner" class="form-control bg-dark text-white border-secondary" placeholder="92300xxxxxxx">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prefix</label>
+                        <input type="text" id="setting-prefix" class="form-control bg-dark text-white border-secondary" placeholder=".">
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="updateSettings()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const socket = io();
+        const qrContainer = document.getElementById('qr-container');
+        const statusIndicator = document.getElementById('status-indicator');
+        const botNumber = document.getElementById('bot-number');
+        const phoneInput = document.getElementById('phone-input');
+        const btnPair = document.getElementById('btn-pair');
+        const pairingDisplay = document.getElementById('pairing-code-display');
+        const pairingCodeText = document.getElementById('pairing-code-text');
+        const uptimeDisplay = document.getElementById('uptime-display');
+
+        function restartBot() {
+            if(confirm('Are you sure you want to restart the bot?')) {
+                socket.emit('restartBot');
+            }
+        }
+
+        function clearSession() {
+            if(confirm('This will delete your login session and restart. Continue?')) {
+                socket.emit('clearSession');
+            }
+        }
+
+        function updateSettings() {
+            const botName = document.getElementById('setting-botname').value;
+            const ownerNumber = document.getElementById('setting-owner').value;
+            const prefix = document.getElementById('setting-prefix').value;
+            socket.emit('updateSettings', { botName, ownerNumber, prefix });
+            const modal = bootstrap.Modal.getInstance(document.getElementById('settingsModal'));
+            if (modal) modal.hide();
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const status = document.getElementById('copy-status');
+                status.innerText = 'Copied to clipboard!';
+                setTimeout(() => status.innerText = '', 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        socket.on('qr', (data) => {
+            qrContainer.innerHTML = `<img src="${data}" class="img-fluid floating shadow-lg" alt="QR Code">`;
+        });
+
+        socket.on('status', (data) => {
+            if (data.connected) {
+                statusIndicator.innerText = 'ONLINE';
+                statusIndicator.className = 'status-badge status-online';
+                botNumber.innerText = 'Connected as: ' + data.number;
+                qrContainer.innerHTML = '<div class="alert alert-success py-5"><i class="fas fa-check-circle fa-4x mb-3"></i><h4>Bot is Online!</h4></div>';
+            } else {
+                statusIndicator.innerText = 'OFFLINE';
+                statusIndicator.className = 'status-badge status-offline';
+                botNumber.innerText = 'No device linked';
+            }
+        });
+
+        socket.on('uptime', (data) => {
+            if (uptimeDisplay) {
+                uptimeDisplay.innerText = data;
+            }
+        });
+
+        btnPair.addEventListener('click', () => {
+            const num = phoneInput.value.trim();
+            if (!num) return alert('Please enter phone number');
+            btnPair.disabled = true;
+            btnPair.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Requesting...';
+            socket.emit('requestPairing', num);
+        });
+
+        socket.on('pairingCode', (code) => {
+            btnPair.disabled = false;
+            btnPair.innerText = 'Get Pairing Code';
+            pairingDisplay.classList.remove('d-none');
+            pairingCodeText.innerText = code;
+        });
+
+        socket.on('error', (msg) => {
+            alert(msg);
+            btnPair.disabled = false;
+            btnPair.innerText = 'Get Pairing Code';
+        });
+    </script>
+</body>
+</html>
